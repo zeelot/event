@@ -35,19 +35,19 @@ class Kohana_Event {
 	 */
 	public static function add($name, $callback)
 	{
-		if ( ! isset(self::$_events[$name]))
+		if ( ! isset(Event::$_events[$name]))
 		{
 			// Create an empty event if it is not yet defined
-			self::$_events[$name] = array();
+			Event::$_events[$name] = array();
 		}
-		elseif (in_array($callback, self::$_events[$name], TRUE))
+		elseif (in_array($callback, Event::$_events[$name], TRUE))
 		{
 			// The event already exists
 			return FALSE;
 		}
 
 		// Add the event
-		self::$_events[$name][] = $callback;
+		Event::$_events[$name][] = $callback;
 
 		return TRUE;
 	}
@@ -62,15 +62,15 @@ class Kohana_Event {
 	 */
 	public static function add_before($name, $existing, $callback)
 	{
-		if (empty(self::$_events[$name]) OR ($key = array_search($existing, self::$_events[$name])) === FALSE)
+		if (empty(Event::$_events[$name]) OR ($key = array_search($existing, Event::$_events[$name])) === FALSE)
 		{
 			// Just add the event if there are no events
-			return self::add($name, $callback);
+			return Event::add($name, $callback);
 		}
 		else
 		{
 			// Insert the event immediately before the existing event
-			return self::insert_event($name, $key, $callback);
+			return Event::insert_event($name, $key, $callback);
 		}
 	}
 
@@ -84,15 +84,15 @@ class Kohana_Event {
 	 */
 	public static function add_after($name, $existing, $callback)
 	{
-		if (empty(self::$_events[$name]) OR ($key = array_search($existing, self::$_events[$name])) === FALSE)
+		if (empty(Event::$_events[$name]) OR ($key = array_search($existing, Event::$_events[$name])) === FALSE)
 		{
 			// Just add the event if there are no events
-			return self::add($name, $callback);
+			return Event::add($name, $callback);
 		}
 		else
 		{
 			// Insert the event immediately after the existing event
-			return self::insert_event($name, $key + 1, $callback);
+			return Event::insert_event($name, $key + 1, $callback);
 		}
 	}
 
@@ -106,18 +106,18 @@ class Kohana_Event {
 	 */
 	protected static function insert_event($name, $key, $callback)
 	{
-		if (in_array($callback, self::$_events[$name], TRUE))
+		if (in_array($callback, Event::$_events[$name], TRUE))
 			return FALSE;
 
 		// Add the new event at the given key location
-		self::$_events[$name] = array_merge
+		Event::$_events[$name] = array_merge
 		(
 			// Events before the key
-			array_slice(self::$_events[$name], 0, $key),
+			array_slice(Event::$_events[$name], 0, $key),
 			// New event callback
 			array($callback),
 			// Events after the key
-			array_slice(self::$_events[$name], $key)
+			array_slice(Event::$_events[$name], $key)
 		);
 
 		return TRUE;
@@ -133,21 +133,21 @@ class Kohana_Event {
 	 */
 	public static function replace($name, $existing, $callback)
 	{
-		if (empty(self::$_events[$name]) OR ($key = array_search($existing, self::$_events[$name], TRUE)) === FALSE)
+		if (empty(Event::$_events[$name]) OR ($key = array_search($existing, Event::$_events[$name], TRUE)) === FALSE)
 			return FALSE;
 
-		if ( ! in_array($callback, self::$_events[$name], TRUE))
+		if ( ! in_array($callback, Event::$_events[$name], TRUE))
 		{
 			// Replace the exisiting event with the new event
-			self::$_events[$name][$key] = $callback;
+			Event::$_events[$name][$key] = $callback;
 		}
 		else
 		{
 			// Remove the existing event from the queue
-			unset(self::$_events[$name][$key]);
+			unset(Event::$_events[$name][$key]);
 
 			// Reset the array so the keys are ordered properly
-			self::$_events[$name] = array_values(self::$_events[$name]);
+			Event::$_events[$name] = array_values(Event::$_events[$name]);
 		}
 
 		return TRUE;
@@ -161,7 +161,7 @@ class Kohana_Event {
 	 */
 	public static function get($name)
 	{
-		return empty(self::$_events[$name]) ? array() : self::$_events[$name];
+		return empty(Event::$_events[$name]) ? array() : Event::$_events[$name];
 	}
 
 	/**
@@ -175,18 +175,18 @@ class Kohana_Event {
 	{
 		if ($callback === FALSE)
 		{
-			self::$_events[$name] = array();
+			Event::$_events[$name] = array();
 		}
-		elseif (isset(self::$_events[$name]))
+		elseif (isset(Event::$_events[$name]))
 		{
 			// Loop through each of the event callbacks and compare it to the
 			// callback requested for removal. The callback is removed if it
 			// matches.
-			foreach (self::$_events[$name] as $i => $event_callback)
+			foreach (Event::$_events[$name] as $i => $event_callback)
 			{
 				if ($callback === $event_callback)
 				{
-					unset(self::$_events[$name][$i]);
+					unset(Event::$_events[$name][$i]);
 				}
 			}
 		}
@@ -202,14 +202,14 @@ class Kohana_Event {
 	public static function run($name, & $data = NULL)
 	{
 
-		if ( ! empty(self::$_events[$name]))
+		if ( ! empty(Event::$_events[$name]))
 		{
 			// Store this so we can run inner events
-			self::$_stack[] =& $data;
+			Event::$_stack[] =& $data;
 
 			// So callbacks can access Event::$data
-			self::$data =& $data;
-			$callbacks  =  self::get($name);
+			Event::$data =& $data;
+			$callbacks  =  Event::get($name);
 
 			foreach ($callbacks as $callback)
 			{
@@ -217,15 +217,15 @@ class Kohana_Event {
 			}
 
 			// We don't need $data anymore
-			array_pop(self::$_stack);
+			array_pop(Event::$_stack);
 
 			// Restore the previous $data value
-			$previous_data = end(self::$_stack);
-			self::$data =& $previous_data;
+			$previous_data = end(Event::$_stack);
+			Event::$data =& $previous_data;
 		}
 
 		// The event has been run!
-		self::$_has_run[$name] = $name;
+		Event::$_has_run[$name] = $name;
 	}
 
 	/**
@@ -236,7 +236,7 @@ class Kohana_Event {
 	 */
 	public static function has_run($name)
 	{
-		return isset(self::$_has_run[$name]);
+		return isset(Event::$_has_run[$name]);
 	}
 
 } // End Kohana_Event
