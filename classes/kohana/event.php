@@ -2,7 +2,7 @@
 /**
  * Process queuing/execution class. Allows an unlimited number of callbacks
  * to be added to 'events'. Events can be run multiple times, and can also
- * process event-specific data. By default, Kohana has several system events.
+ * process event-specific data.
  *
  * $Id: Event.php 4390 2009-06-04 03:05:36Z zombor $
  *
@@ -204,8 +204,7 @@ class Kohana_Event {
 
 		if ( ! empty(self::$_events[$name]))
 		{
-
-			// store this so we can run inner events
+			// Store this so we can run inner events
 			self::$_stack[] =& $data;
 
 			// So callbacks can access Event::$data
@@ -217,10 +216,10 @@ class Kohana_Event {
 				call_user_func($callback);
 			}
 
-			// we don't need $data anymore
+			// We don't need $data anymore
 			array_pop(self::$_stack);
 
-			// restore the previous $data value
+			// Restore the previous $data value
 			$previous_data = end(self::$_stack);
 			self::$data =& $previous_data;
 		}
@@ -240,4 +239,4 @@ class Kohana_Event {
 		return isset(self::$_has_run[$name]);
 	}
 
-} // End Event
+} // End Kohana_Event
